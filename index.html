@@ -335,6 +335,12 @@
             }
         }
 
+        #mobile-input {
+            position: absolute;
+            left: -9999px;
+            opacity: 0;
+        }
+
         @media (max-width: 600px) {
             h1 {
                 font-size: 2rem;
@@ -387,6 +393,8 @@
     </div>
 
     <div class="hearts" id="hearts"></div>
+    
+    <input type="text" id="mobile-input" autocomplete="off" autocorrect="off" autocapitalize="characters">
 
     <script>
         // Puzzle configuration - CUSTOMIZE YOUR CLUES HERE
@@ -463,6 +471,12 @@
             currentCell = { row, col };
             updateActiveCell();
             updateActiveClue();
+            
+            // Focus mobile input to trigger keyboard
+            const mobileInput = document.getElementById('mobile-input');
+            if (mobileInput) {
+                mobileInput.focus();
+            }
         }
 
         function updateActiveCell() {
@@ -551,6 +565,32 @@
                 userGrid[currentCell.row][currentCell.col] = e.key.toUpperCase();
                 updateCellDisplay(currentCell.row, currentCell.col);
                 moveToCell(1);
+            }
+        });
+
+        // Mobile input handler
+        const mobileInput = document.getElementById('mobile-input');
+        mobileInput.addEventListener('input', (e) => {
+            if (!currentCell) return;
+            
+            const value = e.target.value.toUpperCase();
+            if (value && /^[A-Z]$/.test(value)) {
+                userGrid[currentCell.row][currentCell.col] = value;
+                updateCellDisplay(currentCell.row, currentCell.col);
+                moveToCell(1);
+            }
+            // Clear input for next character
+            e.target.value = '';
+        });
+
+        mobileInput.addEventListener('keydown', (e) => {
+            if (!currentCell) return;
+            
+            if (e.key === 'Backspace') {
+                e.preventDefault();
+                userGrid[currentCell.row][currentCell.col] = '';
+                updateCellDisplay(currentCell.row, currentCell.col);
+                moveToCell(-1);
             }
         });
 
