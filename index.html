@@ -548,6 +548,8 @@
 
         document.addEventListener('keydown', (e) => {
             if (!currentCell) return;
+            // Skip if using mobile input
+            if (e.target.id === 'mobile-input') return;
 
             if (e.key === 'Backspace') {
                 userGrid[currentCell.row][currentCell.col] = '';
@@ -591,6 +593,8 @@
                 userGrid[currentCell.row][currentCell.col] = '';
                 updateCellDisplay(currentCell.row, currentCell.col);
                 moveToCell(-1);
+                // Clear input to prevent default backspace behavior
+                e.target.value = '';
             }
         });
 
