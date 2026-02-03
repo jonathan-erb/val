@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Crossword - Valentine's Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Crimson+Text:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --rose: #ff6b9d;
+            --deep-rose: #c9184a;
+            --cream: #fff0f3;
+            --charcoal: #2b2d42;
+            --gold: #ffd700;
+            --correct: #6aaa64;
+            --present: #c9b458;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background: linear-gradient(135deg, #fff0f3 0%, #ffe5ec 50%, #ffc2d1 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,107,157,0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, 20px); }
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: 3rem;
+            color: var(--deep-rose);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--charcoal);
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 
+                0 20px 60px rgba(201, 24, 74, 0.15),
+                0 0 0 1px rgba(255,107,157,0.1);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .crossword-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px;
+            margin-bottom: 30px;
+            background: var(--cream);
+            padding: 3px;
+            border-radius: 10px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            border: 2px solid var(--cream);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            color: var(--charcoal);
+        }
+
+        .cell:hover:not(.black-cell) {
+            border-color: var(--rose);
+            transform: scale(1.05);
+        }
+
+        .cell.black-cell {
+            background: var(--charcoal);
+            cursor: default;
+        }
+
+        .cell.active {
+            border-color: var(--rose);
+            box-shadow: 0 0 0 2px var(--rose);
+            background: var(--cream);
+        }
+
+        .cell.correct {
+            background: linear-gradient(135deg, #d4f1d4 0%, #c8eac8 100%);
+            animation: correctPop 0.4s ease;
+        }
+
+        @keyframes correctPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .cell-number {
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            font-size: 0.7rem;
+            font-family: 'Crimson Text', serif;
+            font-weight: 600;
+            color: var(--charcoal);
+            opacity: 0.6;
+        }
+
+        .clues {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .clue-section h3 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--deep-rose);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .clue-section h3::before {
+            content: '♥';
+            font-size: 1rem;
+        }
+
+        .clue {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: var(--cream);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .clue:hover {
+            background: var(--rose);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .clue.active {
+            background: var(--rose);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255,107,157,0.3);
+        }
+
+        .clue-number {
+            font-weight: 700;
+            font-family: 'Playfair Display', serif;
+            margin-right: 6px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: 2px solid var(--deep-rose);
+            background: white;
+            color: var(--deep-rose);
+            border-radius: 25px;
+            font-family: 'Crimson Text', serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: var(--deep-rose);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(201, 24, 74, 0.3);
+        }
+
+        .victory {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(43, 45, 66, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .victory-content {
+            text-align: center;
+            color: white;
+            animation: scaleIn 0.6s ease;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .victory-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            color: var(--rose);
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(255,107,157,0.5);
+        }
+
+        .victory-content p {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+
+        .hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 30px;
+            color: var(--rose);
+            animation: fall 4s linear forwards;
+            opacity: 0;
+        }
+
+        @keyframes fall {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .clues {
+                grid-template-columns: 1fr;
+            }
+            
+            .cell {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>The Mini</h1>
+            <p class="subtitle">Valentine's Edition</p>
+        </header>
+
+        <div class="game-container">
+            <div class="crossword-grid" id="grid"></div>
+            
+            <div class="clues">
+                <div class="clue-section">
+                    <h3>Across</h3>
+                    <div id="across-clues"></div>
+                </div>
+                <div class="clue-section">
+                    <h3>Down</h3>
+                    <div id="down-clues"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button onclick="checkPuzzle()">Check Puzzle</button>
+                <button onclick="clearPuzzle()">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="victory" id="victory">
+        <div class="victory-content">
+            <h2>💝</h2>
+            <p>Lana, you're my valentine!</p>
+            <button onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <div class="hearts" id="hearts"></div>
+
+    <script>
+        // Puzzle configuration - CUSTOMIZE YOUR CLUES HERE
+        const puzzle = {
+            grid: [
+                ['W', 'I', 'L', 'L', 'X'],
+                ['X', 'L', 'O', 'V', 'E'],
+                ['X', 'X', 'X', 'X', 'X'],
+                ['Y', 'O', 'U', 'X', 'X'],
+                ['X', 'X', 'X', 'X', 'X'],
+                ['B', 'E', 'X', 'X', 'X'],
+                ['X', 'X', 'X', 'X', 'X'],
+                ['M', 'I', 'N', 'E', 'X']
+            ],
+            clues: {
+                across: [
+                    { number: 1, clue: "you're mom", answer: 'WILL', row: 0, col: 0 },
+                    { number: 3, clue: 'only a feeling', answer: 'LOVE', row: 1, col: 1 },
+                    { number: 4, clue: 'soulja boy, accomplice of jonathan', answer: 'YOU', row: 3, col: 0 },
+                    { number: 5, clue: 'buzz buzz', answer: 'BE', row: 5, col: 0 },
+                    { number: 6, clue: 'you are fine and you are _____ ', answer: 'MINE', row: 7, col: 0 }
+                ],
+                down: [
+                    { number: 2, clue: 'the feeling that had earlier today', answer: 'ILOVE', row: 0, col: 1 },
+                ]
+            }
+        };
+
+        let currentCell = null;
+        let currentDirection = 'across';
+        let userGrid = [];
+
+        // Initialize the grid
+        function initGrid() {
+            const gridElement = document.getElementById('grid');
+            userGrid = puzzle.grid.map(row => row.map(() => ''));
+
+            puzzle.grid.forEach((row, rowIndex) => {
+                row.forEach((cell, colIndex) => {
+                    const cellDiv = document.createElement('div');
+                    cellDiv.className = 'cell';
+                    cellDiv.dataset.row = rowIndex;
+                    cellDiv.dataset.col = colIndex;
+
+                    if (cell === 'X') {
+                        cellDiv.classList.add('black-cell');
+                    } else {
+                        // Add cell numbers
+                        const clueNumber = getClueNumber(rowIndex, colIndex);
+                        if (clueNumber) {
+                            const numberSpan = document.createElement('span');
+                            numberSpan.className = 'cell-number';
+                            numberSpan.textContent = clueNumber;
+                            cellDiv.appendChild(numberSpan);
+                        }
+
+                        cellDiv.addEventListener('click', () => selectCell(rowIndex, colIndex));
+                    }
+
+                    gridElement.appendChild(cellDiv);
+                });
+            });
+        }
+
+        function getClueNumber(row, col) {
+            const allClues = [...puzzle.clues.across, ...puzzle.clues.down];
+            const clue = allClues.find(c => c.row === row && c.col === col);
+            return clue ? clue.number : null;
+        }
+
+        function selectCell(row, col) {
+            if (puzzle.grid[row][col] === 'X') return;
+
+            currentCell = { row, col };
+            updateActiveCell();
+            updateActiveClue();
+        }
+
+        function updateActiveCell() {
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('active');
+            });
+
+            if (currentCell) {
+                const cell = document.querySelector(`[data-row="${currentCell.row}"][data-col="${currentCell.col}"]`);
+                if (cell) cell.classList.add('active');
+            }
+        }
+
+        function updateActiveClue() {
+            document.querySelectorAll('.clue').forEach(clue => {
+                clue.classList.remove('active');
+            });
+
+            if (currentCell) {
+                const clue = findClueForCell(currentCell.row, currentCell.col);
+                if (clue) {
+                    const clueElement = document.querySelector(`[data-number="${clue.number}"][data-direction="${currentDirection}"]`);
+                    if (clueElement) clueElement.classList.add('active');
+                }
+            }
+        }
+
+        function findClueForCell(row, col) {
+            const clues = puzzle.clues[currentDirection];
+            return clues.find(clue => {
+                if (currentDirection === 'across') {
+                    return clue.row === row && col >= clue.col && col < clue.col + clue.answer.length;
+                } else {
+                    return clue.col === col && row >= clue.row && row < clue.row + clue.answer.length;
+                }
+            });
+        }
+
+        function initClues() {
+            const acrossElement = document.getElementById('across-clues');
+            const downElement = document.getElementById('down-clues');
+
+            puzzle.clues.across.forEach(clue => {
+                const clueDiv = document.createElement('div');
+                clueDiv.className = 'clue';
+                clueDiv.dataset.number = clue.number;
+                clueDiv.dataset.direction = 'across';
+                clueDiv.innerHTML = `<span class="clue-number">${clue.number}.</span>${clue.clue}`;
+                clueDiv.addEventListener('click', () => {
+                    currentDirection = 'across';
+                    selectCell(clue.row, clue.col);
+                });
+                acrossElement.appendChild(clueDiv);
+            });
+
+            puzzle.clues.down.forEach(clue => {
+                const clueDiv = document.createElement('div');
+                clueDiv.className = 'clue';
+                clueDiv.dataset.number = clue.number;
+                clueDiv.dataset.direction = 'down';
+                clueDiv.innerHTML = `<span class="clue-number">${clue.number}.</span>${clue.clue}`;
+                clueDiv.addEventListener('click', () => {
+                    currentDirection = 'down';
+                    selectCell(clue.row, clue.col);
+                });
+                downElement.appendChild(clueDiv);
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!currentCell) return;
+
+            if (e.key === 'Backspace') {
+                userGrid[currentCell.row][currentCell.col] = '';
+                updateCellDisplay(currentCell.row, currentCell.col);
+                moveToCell(-1);
+            } else if (e.key === 'ArrowLeft') {
+                moveCell(0, -1);
+            } else if (e.key === 'ArrowRight') {
+                moveCell(0, 1);
+            } else if (e.key === 'ArrowUp') {
+                moveCell(-1, 0);
+            } else if (e.key === 'ArrowDown') {
+                moveCell(1, 0);
+            } else if (/^[a-zA-Z]$/.test(e.key)) {
+                userGrid[currentCell.row][currentCell.col] = e.key.toUpperCase();
+                updateCellDisplay(currentCell.row, currentCell.col);
+                moveToCell(1);
+            }
+        });
+
+        function updateCellDisplay(row, col) {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            if (cell && !cell.classList.contains('black-cell')) {
+                cell.textContent = userGrid[row][col];
+                if (cell.querySelector('.cell-number')) {
+                    cell.appendChild(cell.querySelector('.cell-number'));
+                }
+            }
+        }
+
+        function moveToCell(direction) {
+            if (!currentCell) return;
+
+            let nextRow = currentCell.row;
+            let nextCol = currentCell.col;
+
+            if (currentDirection === 'across') {
+                nextCol += direction;
+            } else {
+                nextRow += direction;
+            }
+
+            if (nextRow >= 0 && nextRow < puzzle.grid.length &&
+                nextCol >= 0 && nextCol < puzzle.grid[0].length &&
+                puzzle.grid[nextRow][nextCol] !== 'X') {
+                selectCell(nextRow, nextCol);
+            }
+        }
+
+        function moveCell(rowDelta, colDelta) {
+            if (!currentCell) return;
+
+            let nextRow = currentCell.row + rowDelta;
+            let nextCol = currentCell.col + colDelta;
+
+            while (nextRow >= 0 && nextRow < puzzle.grid.length &&
+                   nextCol >= 0 && nextCol < puzzle.grid[0].length) {
+                if (puzzle.grid[nextRow][nextCol] !== 'X') {
+                    currentDirection = rowDelta !== 0 ? 'down' : 'across';
+                    selectCell(nextRow, nextCol);
+                    return;
+                }
+                nextRow += rowDelta;
+                nextCol += colDelta;
+            }
+        }
+
+        function checkPuzzle() {
+            let allCorrect = true;
+
+            puzzle.grid.forEach((row, rowIndex) => {
+                row.forEach((cell, colIndex) => {
+                    if (cell !== 'X') {
+                        const cellElement = document.querySelector(`[data-row="${rowIndex}"][data-col="${colIndex}"]`);
+                        if (userGrid[rowIndex][colIndex] === cell) {
+                            cellElement.classList.add('correct');
+                        } else {
+                            allCorrect = false;
+                        }
+                    }
+                });
+            });
+
+            if (allCorrect) {
+                setTimeout(() => {
+                    showVictory();
+                }, 500);
+            }
+        }
+
+        function clearPuzzle() {
+            userGrid = puzzle.grid.map(row => row.map(() => ''));
+            document.querySelectorAll('.cell:not(.black-cell)').forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('correct');
+                if (cell.querySelector('.cell-number')) {
+                    cell.appendChild(cell.querySelector('.cell-number'));
+                }
+            });
+        }
+
+        function showVictory() {
+            document.getElementById('victory').style.display = 'flex';
+            createHearts();
+        }
+
+        function createHearts() {
+            const heartsContainer = document.getElementById('hearts');
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart';
+                    heart.textContent = '♥';
+                    heart.style.left = Math.random() * 100 + '%';
+                    heart.style.animationDelay = Math.random() * 2 + 's';
+                    heart.style.fontSize = (Math.random() * 20 + 20) + 'px';
+                    heartsContainer.appendChild(heart);
+
+                    setTimeout(() => heart.remove(), 4000);
+                }, i * 100);
+            }
+        }
+
+        // Initialize the game
+        initGrid();
+        initClues();
+        selectCell(0, 0);
+    </script>
+</body>
+</html>
